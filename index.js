@@ -30,7 +30,38 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-       
+        const userCollection = client.db("TaskManage").collection("users");
+        const tasksCollection = client.db("TaskManage").collection("tasks");
+
+        // get users 
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        });
+        // get tasks 
+        app.get('/tasks', async (req, res) => {
+            const result = await tasksCollection.find().toArray();
+            res.send(result);
+        });
+        // post users 
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user.email }
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
+                return res.send({ message: 'user already exists', insertedId: null })
+            }
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        });
+        // post tasks 
+        app.post('/tasks', async (req, res) => {
+            const tasks = req.body;
+            const result = await tasksCollection.insertOne(tasks);
+            res.send(result);
+        });
+
+
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
