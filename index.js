@@ -44,7 +44,7 @@ async function run() {
             res.send(result);
         });
         app.get('/tasks/:id', async (req, res) => {
-            const taskId= req.params.id
+            const taskId = req.params.id
             const result = await tasksCollection.findOne({ _id: new ObjectId(taskId) },);
             res.send(result);
         });
@@ -68,21 +68,48 @@ async function run() {
 
         // update tasks 
         app.put('/tasks/:id', async (req, res) => {
-            
-                const taskId = req.params.id;
-                const newTaskStatus = req.body.newStatus;
-                console.log(taskId,newTaskStatus);
 
-                const result = await tasksCollection.updateOne(
-                    { _id: new ObjectId(taskId) },
-                    { $set: { taskStatus: newTaskStatus } }
-                );
-                if (result.matchedCount > 0) {
-                    res.status(200).json({ message: 'TaskStatus updated successfully' });
-                } else {
-                    res.status(404).json({ message: 'Task not found' });
-                }
+            const taskId = req.params.id;
+            const newTaskStatus = req.body.newStatus;
+            console.log(taskId, newTaskStatus);
+
+            const result = await tasksCollection.updateOne(
+                { _id: new ObjectId(taskId) },
+                { $set: { taskStatus: newTaskStatus } }
+            );
+            if (result.matchedCount > 0) {
+                res.status(200).json({ message: 'TaskStatus updated successfully' });
+            } else {
+                res.status(404).json({ message: 'Task not found' });
+            }
         });
+        // update 
+        app.put('/user/tasks/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updateTask = req.body;
+            console.log(updateTask);
+            const Task = {
+                $set: {
+                    userName: updateTask.userName,
+                    userEmail: updateTask.userEmail,
+                    task: updateTask.task,
+                    taskStatus: updateTask.taskStatus,
+                    deadline: updateTask.deadline,
+
+                }
+            }
+            const result = await tasksCollection.updateOne(filter, Task, options);
+            res.send(result);
+        })
+        // delete 
+        app.delete('/tasks/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await tasksCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
         await client.db("admin").command({ ping: 1 });
