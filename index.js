@@ -43,6 +43,11 @@ async function run() {
             const result = await tasksCollection.find().toArray();
             res.send(result);
         });
+        app.get('/tasks/:id', async (req, res) => {
+            const taskId= req.params.id
+            const result = await tasksCollection.findOne({ _id: new ObjectId(taskId) },);
+            res.send(result);
+        });
         // post users 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -59,6 +64,24 @@ async function run() {
             const tasks = req.body;
             const result = await tasksCollection.insertOne(tasks);
             res.send(result);
+        });
+
+        // update tasks 
+        app.put('/tasks/:id', async (req, res) => {
+            
+                const taskId = req.params.id;
+                const newTaskStatus = req.body.newStatus;
+                console.log(taskId,newTaskStatus);
+
+                const result = await tasksCollection.updateOne(
+                    { _id: new ObjectId(taskId) },
+                    { $set: { taskStatus: newTaskStatus } }
+                );
+                if (result.matchedCount > 0) {
+                    res.status(200).json({ message: 'TaskStatus updated successfully' });
+                } else {
+                    res.status(404).json({ message: 'Task not found' });
+                }
         });
 
 
